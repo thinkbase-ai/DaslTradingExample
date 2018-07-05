@@ -1,0 +1,71 @@
+﻿ruleset tradingrules
+{
+  input numeric price;
+  input numeric price_1;
+  input numeric price_2;
+  input numeric price_3;
+  input numeric price_4;
+  input numeric price_5;
+  input numeric price_6;
+  input numeric price_7;
+  input numeric price_8;
+
+  output numeric average3;
+  output numeric average9;
+  
+  output categorical trade {long,short};
+  
+  if anything then average3 will be sum(price, price_1, price_2) / 3;
+  if anything then average9 will be sum(price, price_1, price_2, price_3, price_4, price_5, price_6, price_7, price_8) / 9;
+  if average3 is >= average9 then trade will be long;
+  if average3 is < average9 then trade will be short;
+}
+
+ruleset tradingsim
+{
+  input categorical trade {long,short};
+  input categorical oldtrade {long,short};
+  input numeric price;
+  input numeric balance;
+  
+  constant spread 0.001;
+  constant transaction_fee 10.00;
+  
+  output categorical transact {true,false};
+  output numeric newbalance;
+  output numeric sterling;
+  
+  if not trade is categoryof(oldtrade)  or trade is present and oldtrade is absent then transact will be true;
+  otherwise if anything then transact will be false;
+  
+  if transact is true and trade is long then newbalance will be balance / (price + spread) - transaction_fee;
+  if transact is true and trade is short then newbalance will be balance * (price - spread) - transaction_fee * price;
+  otherwise if anything then newbalance will be balance;
+  
+  if trade is short then sterling will be newbalance / price;
+  otherwise if anything then sterling will be newbalance;
+}
+
+mapinput price;
+mapinput balance;
+mapoutput sterling;
+mapoutput trade;
+mapoutput newbalance;
+
+wire price tradingrules.price;
+wire price tradingsim.price;
+wire balance tradingsim.balance;
+wire tradingrules.trade tradingsim.trade;
+wire tradingsim.sterling sterling;
+wire tradingrules.trade trade;
+wire tradingsim.newbalance newbalance;
+delay trade tradingsim.oldtrade {0};
+delay price tradingrules.price_1 {0};
+delay price tradingrules.price_2 {1};
+delay price tradingrules.price_3 {2};
+delay price tradingrules.price_4 {3};
+delay price tradingrules.price_5 {4};
+delay price tradingrules.price_6 {5};
+delay price tradingrules.price_7 {6};
+delay price tradingrules.price_8 {7};
+delay newbalance tradingsim.balance {0};
